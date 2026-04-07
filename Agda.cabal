@@ -104,6 +104,11 @@ extra-source-files:
     src/data/emacs-mode/agda2.el
     src/data/emacs-mode/annotation.el
     src/data/emacs-mode/eri.el
+    src/data/forester/Agda.css
+    src/data/forester/macros.tree
+    src/data/forester/st-style.css
+    src/data/forester/style.css
+    src/data/forester/tree.xsl
     src/data/html/Agda.css
     src/data/html/highlight-hover.js
     src/data/JS/agda-rts.mjs
@@ -596,6 +601,12 @@ library
       Agda.Interaction.Highlighting.Dot.Backend
       Agda.Interaction.Highlighting.Dot.Base
       Agda.Interaction.Highlighting.Emacs
+      Agda.Interaction.Highlighting.Forester
+      Agda.Interaction.Highlighting.Forester.Backend
+      Agda.Interaction.Highlighting.Forester.Base
+      Agda.Interaction.Highlighting.Forester.Data
+      Agda.Interaction.Highlighting.Forester.Forester
+      Agda.Interaction.Highlighting.Forester.Html
       Agda.Interaction.Highlighting.FromAbstract
       Agda.Interaction.Highlighting.Generate
       Agda.Interaction.Highlighting.HTML

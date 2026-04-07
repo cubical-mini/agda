@@ -28,3 +28,7 @@ It contains files needed by Agda, its backends, and the Emacs mode.
   * `latex/`
 
     Style file and tool(s) for the LaTeX backend.
+
+  * `forester/`
+
+    Style file and tool(s) for the Forester backend.
