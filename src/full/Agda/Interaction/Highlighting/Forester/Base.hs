@@ -48,8 +48,8 @@ type TokenInfo =
 aspectsTokenInfo :: TokenInfo -> Aspects
 aspectsTokenInfo (_,_,a) = a
 
-codeTree :: HashMap Text FInfo -> ModuleData -> [TokenInfo] -> String
-codeTree ds hm = join . fmap mkTree . splitByMarkup where
+codeTree :: HashMap Text FInfo -> ModuleData -> String -> [TokenInfo] -> String
+codeTree ds hm hpre = join . fmap mkTree . splitByMarkup where
 
   splitByMarkup :: [TokenInfo] -> [[TokenInfo]]
   splitByMarkup = splitWhen $ (== Just Markup) . aspect . aspectsTokenInfo
@@ -61,22 +61,22 @@ codeTree ds hm = join . fmap mkTree . splitByMarkup where
     where
       containsCode = any ((/= Just Background) . aspect . aspectsTokenInfo) tokens
 
-      formatCode = render . pretty $ Command "agda" [Raw . pack . mconcat $ fTok ds hm <$> tokens] -- $ mconcat $ backgroundOrAgdaToHtml <$> tokens
+      formatCode = render . pretty $ Command "agda" [Raw . pack . mconcat $ fTok ds hm hpre <$> tokens] -- $ mconcat $ backgroundOrAgdaToHtml <$> tokens
       formatNonCode = mconcat $ backgroundOrAgdaToTree <$> tokens
 
   backgroundOrAgdaToTree :: TokenInfo -> String
   backgroundOrAgdaToTree token@(_, s, mi) = case aspect mi of
     Just Background -> s
     Just Markup     -> __IMPOSSIBLE__
-    _               -> fTok ds hm token
+    _               -> fTok ds hm hpre token
 
 -- | Converts module names to the corresponding HTML file names.
 
 modToFile :: TopLevelModuleName -> String -> FilePath
 modToFile m ext = Network.URI.Encode.encode $ render (pretty m) <.> ext
 
-fTok :: HashMap Text FInfo -> ModuleData -> TokenInfo -> String
-fTok defSrc md (pos, cont, asp) = appEndo (mconcat $ fmap (\c -> Endo (\x -> "\\" ++ c ++ "{" ++ x ++ "}")) classes <> annotate) $ filterC =<< cont where
+fTok :: HashMap Text FInfo -> ModuleData -> String -> TokenInfo -> String
+fTok defSrc md hpre (pos, cont, asp) = appEndo (mconcat $ fmap (\c -> Endo (\x -> "\\" ++ c ++ "{" ++ x ++ "}")) classes <> annotate) $ filterC =<< cont where
 
   filterC :: Char -> String
   filterC '(' = "\\lpar{}"
@@ -120,7 +120,7 @@ fTok defSrc md (pos, cont, asp) = appEndo (mconcat $ fmap (\c -> Endo (\x -> "\\
                     (show defPos))
                     -- Network.URI.Encode.encode (fromMaybe (show defPos) aName)) -- Named links disabled
                     (Network.URI.Encode.encode $ modToFile m "html")
-        in [\s -> "[" <> s <> "]" <> "(" <> "/html/" <> l <> ")"]
+        in [\s -> "[" <> s <> "]" <> "(" <> hpre <> "/html/" <> l <> ")"]
       Just (TreeFileType, it) -> [\s -> "[" <> s <> "]" <> "(" <> unpack (maybe (pack.render.pretty $ m) id $ getSubtree it defPos) <> ")"]
       _ -> []
 

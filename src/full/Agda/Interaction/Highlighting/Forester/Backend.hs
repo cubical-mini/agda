@@ -55,6 +55,7 @@ data ForesterOpts = Opts
   { optsEnabled :: Bool
   , optsTreeDir :: FilePath
   , optsHtmlDir :: FilePath
+  , optsHtmlPre :: String
   -- , optsStructured :: FStructured
   } deriving (Generic, NFData)
 
@@ -63,6 +64,7 @@ defaultOps = Opts
   { optsEnabled = False
   , optsTreeDir = "trees"
   , optsHtmlDir = "assets/html"
+  , optsHtmlPre = ""
   -- , optsStructured = FSNone
   }
 
@@ -130,6 +132,9 @@ fFlags =
   , Option [] ["fhtml-dir"] (OptArg (\r o -> case r of
       Just d -> return o{optsHtmlDir = d}
       Nothing -> return o) "DIR") "directory in which forester HTML files are written (default: assets/html)"
+  , Option [] ["html-prefix"] (OptArg (\r o -> case r of
+      Just d -> return o{optsHtmlPre = d}
+      Nothing -> return o) "STRING") "prefix for HTML links (empty by default)"
   ]
 
 foresterPreCompile :: ForesterOpts -> TCMT IO CompEnv
@@ -212,7 +217,7 @@ foresterPostModule cenv menv _main tlname defs' = do
       liftIO $ modifyIORef (compileMods cenv) (HM.insert (pack.render.pretty $ tlname) (ftype, []))
       hm <- liftIO $ readIORef (compileMods cenv)
       ds <- liftIO $ readIORef (compileForestData cenv)
-      let content = renderAgda tlname (tokenStream src hinfo) -- TODO: Links are broken for this - they always point ...html
+      let content = renderAgda tlname (tokenStream src hinfo)
       let root = (optsHtmlDir . compileEnvOpts $ cenv )
       liftIO $ UTF8.writeTextToFile (root </> render (pretty tlname) <.> "html") $ content
       liftIO $ putStrLn $ "Written " <> render (pretty tlname) <> " to " <> (root </> render (pretty tlname) <.> "html")
@@ -225,7 +230,7 @@ foresterPostModule cenv menv _main tlname defs' = do
       liftIO $ modifyIORef (compileMods cenv) (HM.insert (pack.render.pretty $ tlname) (ftype, cs))
       hm <- liftIO $ readIORef (compileMods cenv)
       ds <- liftIO $ readIORef (compileForestData cenv)
-      let content = codeTree ds hm (tokenStream src hinfo)
+      let content = codeTree ds hm (optsHtmlPre . compileEnvOpts $ cenv) (tokenStream src hinfo)
       let root = (optsTreeDir . compileEnvOpts $ cenv )
       liftIO $ UTF8.writeTextToFile (root </> render (pretty tlname) <.> "tree") $ T.pack $ content
       liftIO $ putStrLn $ "Written " <> render (pretty tlname) <> " to " <> (root </> render (pretty tlname) <.> "tree")
